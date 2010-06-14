@@ -216,6 +216,15 @@ int OVGenericContext::keyEvent(OVKeyCode *key, OVBuffer *buf, OVCandidate *textb
         if (!autocomposing)
 			return candidateEvent(key, buf, textbar, srv);
 
+		// [dsiu] don't filter my keys
+		// send back ^J ^K
+		if (key->isCtrl() && (
+							 key->code() == 75 || key->code() == 107 // ^K
+							 || key->code() == 74 || key->code() == 106 // ^J
+							  )) {
+			return candidateEvent(key, buf, textbar, srv);
+		}
+		
 		if (key->code() == ovkDown ||
             key->code() == ovkLeft ||
             key->code() == ovkUp ||
@@ -243,7 +252,15 @@ int OVGenericContext::keyEvent(OVKeyCode *key, OVBuffer *buf, OVCandidate *textb
         return 1;
     }
 
-    if (key->code() == ovkDelete || key->code() == ovkBackspace) {
+	// send back ^H if there is no keyseq
+	if (!keyseq.length() && (key->isCtrl() && (key->code() == 72 || key->code() == 104))) {
+        cancelAutoCompose(textbar);
+        buf->clear()->update();
+        keyseq.clear();
+        return 0;
+	}			
+	// [dsiu] add ^H as delete char key
+    if (key->code() == ovkDelete || key->code() == ovkBackspace || (key->isCtrl() && (key->code() == 72 || key->code() == 104))) {
         keyseq.remove();
         updateDisplay(buf);
         if (!keyseq.length() && autocomposing) 
@@ -417,20 +434,22 @@ int OVGenericContext::compose(OVBuffer *buf, OVCandidate *textbar, OVService *sr
 int OVGenericContext::candidateEvent(OVKeyCode *key, OVBuffer *buf, 
     OVCandidate *textbar, OVService *srv)
 {
-    if (key->code() == ovkEsc || key->code() == ovkBackspace) {
+	if (key->code() == ovkEsc || key->code() == ovkBackspace) {
         textbar->hide()->clear();
         candi.cancel();
         buf->clear()->update();
         return 1;
     }
 
-    if (key->code() == ovkDown || key->code() == ovkRight ||
+	// [dsiu] add ^J as next page char key
+    if (key->code() == ovkDown || key->code() == ovkRight || (key->isCtrl() && (key->code() == 74 || key->code() == 106)) ||
         (!candi.onePage() && key->code()==ovkSpace)) {
         candi.pageDown()->update(textbar);
         return 1;
     }
-
-    if (key->code() == ovkUp || key->code() == ovkLeft) {
+    
+	// [dsiu] add ^K as priv page char key
+    if (key->code() == ovkUp || key->code() == ovkLeft || (key->isCtrl() && (key->code() == 75 || key->code() == 107))) {
         candi.pageUp()->update(textbar);
         return 1;
     }
