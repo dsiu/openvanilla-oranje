@@ -251,8 +251,16 @@ int OVGenericContext::keyEvent(OVKeyCode *key, OVBuffer *buf, OVCandidate *textb
         keyseq.clear();
         return 1;
     }
+	
+	// [dsiu] send back keyseq if ^O
+	if (keyseq.length() && (key->isCtrl() && (key->code() == 79 || key->code() == 111))) {
+		cancelAutoCompose(textbar);
+		buf->clear()->append(keyseq.getSeq())->update()->send();
+		keyseq.clear();
+		return 1;
+	}
 
-	// send back ^H if there is no keyseq
+	// [dsiu] send back ^H if there is no keyseq
 	if (!keyseq.length() && (key->isCtrl() && (key->code() == 72 || key->code() == 104))) {
         cancelAutoCompose(textbar);
         buf->clear()->update();
