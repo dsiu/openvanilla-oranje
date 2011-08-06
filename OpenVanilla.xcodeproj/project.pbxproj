@@ -1487,7 +1487,6 @@
 			isa = PBXProject;
 			buildConfigurationList = 6A6A85B20E86750E00B94B7F /* Build configuration list for PBXProject "OpenVanilla" */;
 			compatibilityVersion = "Xcode 2.4";
-			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				English,
